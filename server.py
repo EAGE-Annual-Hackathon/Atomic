@@ -4,17 +4,14 @@ import matplotlib.pyplot as plt
 
 # from pydantic_ai import Agent
 import numpy as np
-<<<<<<< HEAD:hello_world_mcp/server.py
 from scipy.signal import butter, filtfilt
 from pylops.basicoperators import *
 from pylops.optimization.sparsity import fista
 from pylops.basicoperators import Diagonal, Restriction
 from pylops.signalprocessing import FFT2D
 import pylops
-=======
 import segyio
 from fastmcp import FastMCP, Image
->>>>>>> 2ca077bb5392448e61c5963fd98d22a8cc42548e:server.py
 
 mcp = FastMCP(
     name="Atomic",
@@ -88,15 +85,9 @@ def visualize_2d(filepath: str, shot: int, title: str) -> Image:
     data = np.load(filepath)["data"]
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmpfile:
         plt.figure(figsize=(8, 6))
-<<<<<<< HEAD:hello_world_mcp/server.py
-        plt.imshow(data[:,shot,:], aspect="auto", cmap="gray",vmin=-1e-8,vmax=1e-8)
-        # Title uses the correct filename of the SEG-Y file
-        plt.title(title)
-=======
         plt.imshow(data[:, shot, :].T, aspect="auto", cmap="gray", vmin=-1e-8, vmax=1e-8)
         # Title uses the correct filename of the SEG-Y file
         plt.title("Data shot %d" % shot)
->>>>>>> 2ca077bb5392448e61c5963fd98d22a8cc42548e:server.py
         plt.xlabel("Xline")
         plt.ylabel("Samples")
         plt.colorbar(label="Amplitude")
@@ -165,9 +156,11 @@ def interpolate_gap(filepath:str)->str:
     return data_recover
 
 
+
+
 if __name__ == "__main__":
     mcp.run(
-        transport="streamable-http",
+        transport="sse",
         host="0.0.0.0",
         port=9000,
         log_level="debug",
