@@ -8,6 +8,12 @@ from segyio.tools import cube
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 import numpy as np
+from scipy.signal import butter, filtfilt
+from pylops.basicoperators import *
+from pylops.optimization.sparsity import fista
+from pylops.basicoperators import Diagonal, Restriction
+from pylops.signalprocessing import FFT2D
+import pylops
 
 mcp = FastMCP(
     name="Atomic",
@@ -68,21 +74,79 @@ def visualize_2d(filepath:str,shot:int,title:str)-> Image:
     Notes:
         You need to provide a 2D list. You can use the `get_seismic_data` function to obtain the data.
     """
+
     data = np.load(filepath)["data"]
     with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as tmpfile:
         plt.figure(figsize=(8, 6))
-        plt.imshow(data[:,shot,:].T, aspect="auto", cmap="gray",vmin=-1e-8,vmax=1e-8)
+        plt.imshow(data[:,shot,:], aspect="auto", cmap="gray",vmin=-1e-8,vmax=1e-8)
         # Title uses the correct filename of the SEG-Y file
-        plt.title("Data shot %d"%shot)
+        plt.title(title)
         plt.xlabel("Xline")
         plt.ylabel("Samples")
         plt.colorbar(label="Amplitude")
         plt.tight_layout()
-        plt.savefig(tmpfile.name, format="jpeg")
+        plt.savefig(tmpfile.name, format="png")
         plt.close()
         jpeg_path = tmpfile.name
 
-    return Image(path=jpeg_path, format="jpeg")
+    return Image(path=jpeg_path, format="png")
+
+@mcp.tool()
+def butter_bandpass_filter(filepath:str, lowcut:int, highcut:int, fs:float, shot:int)->str:
+    r"""Apply Butterworth bandpass filter
+
+    Apply Butterworth bandpass filter over time axis of input data
+
+    Parameters
+    ----------
+    data : np.ndarray
+        1D or 2D array where filtering is applied along the last axis
+    lowcut : int
+        Lower cut-off frequency
+    highcut : int
+        Upper cut-off frequency
+    fs : float
+        Sampling frequency (Hz), whic is 1/time_step (in seconds)
+
+    Returns
+    -------
+    y : np.ndarray
+        Filtered data
+    """
+    data = np.load(filepath)["data"]
+    data = data[:,shot,:]
+    order = 5
+    nyq = 0.5 * fs
+    low = lowcut / nyq
+    high = highcut / nyq
+    b, a = butter(order, [low, high], btype='bandpass', analog=False)
+    y = filtfilt(b, a, data, axis=-1)
+    np.savez(filepath + "_filtered.npz", data=y)
+    return y
+
+@mcp.tool()
+def interpolate_gap(filepath:str)->str:
+    """Interpolate gaps in the seismic data using sparsity promoting inversion."""
+    nfft_x,nfft_t = 1024,1024
+
+    data_miss = np.load(filepath)["data"]
+
+    zero_rows = np.where(np.all(data_miss == 0, axis=1))[0]
+    all_indices = np.arange(data_miss.shape[0])
+    available_trace_indices = np.setdiff1d(all_indices, zero_rows)
+
+    Rop = Restriction(dims=(data_miss.shape), iava=available_trace_indices, axis=0, dtype="float64")
+    Fop = FFT2D(dims=(data_miss.shape), nffts=(nfft_x, nfft_t), dtype=np.complex128)
+
+    F0op  = Rop * Fop.H
+    data0 = np.delete(data_miss, zero_rows, axis=0).ravel()
+
+    with pylops.disabled_ndarray_multiplication():
+        pinv0, _, _ = fista(F0op, data0, niter=100, eps=1000, 
+                            eigsdict=dict(niter=5, tol=1e-2), show=True)
+    data_recover = np.real(Fop.H*pinv0).reshape(data_miss.shape)
+    np.savez(filepath + "_interpolated.npz", data=data_recover)
+    return data_recover
 
 if __name__ == "__main__":
     mcp.run(
