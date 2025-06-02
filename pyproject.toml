@@ -13,12 +13,12 @@ dependencies = [
     "segyio>=1.9.13",
     "starlette>=0.47.0",
     "streamlit>=1.45.1",
-        "fastmcp >= 2.3.0",
+    "fastmcp >= 2.3.0",
     "matplotlib>=3.10.3",
     "mcp[cli]>=1.8.1",
     "segyio>=1.9.13",
     "pylops>=2.1.0",
     "scipy>=1.13.0",
     "numpy>=1.22.3",
-    "scikit-image>=0.25.2"
+    "scikit-image>=0.25.2",
 ]
