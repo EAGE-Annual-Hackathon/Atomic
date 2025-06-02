@@ -9,8 +9,9 @@ from pydantic_graph import End
 
 st.title("Automic")
 
-
+# create mcp client
 server = MCPServerHTTP(url="http://0.0.0.0:9000/atomic")
+# create llm agent with mcp server
 agent = Agent(
     "openai:gpt-4.1-mini",
     mcp_servers=[server],
@@ -21,6 +22,13 @@ agent = Agent(
 
 
 async def agent_iter(prompt: str):
+    """Iterate over the intermediary results of the llm agent.
+
+    This function prints the results and all intermediary images to streamlit and debugs all other intermediary results.
+
+    Args:
+        prompt: Prompt to give to the model.
+    """
     async with agent.iter(user_prompt=prompt) as agent_run:
         async for node in agent_run:
             print(f"{type(node)=}, {node=}")
@@ -42,16 +50,20 @@ async def agent_iter(prompt: str):
 
 
 async def run_agent(prompt: str):
+    """Run agent with given prompt.
+
+    Args:
+        prompt: Prompt to give to the model.
+    """
     async with agent.run_mcp_servers():
-        result = await agent_iter(prompt)
-    return result
+        await agent_iter(prompt)
 
 
 # Initialize chat history
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# Display chat messages from history on app rerun
+# Display chat messages and images from history on app rerun
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         if "content" in message:
@@ -69,10 +81,5 @@ if prompt := st.chat_input("What is up?"):
 
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
-        # stream = client.chat.completions.create(
-        #     model=st.session_state["openai_model"],
-        #     messages=[{"role": m["role"], "content": m["content"]} for m in st.session_state.messages],
-        #     stream=True,
-        # )
-
+        # run llm agent
         asyncio.run(run_agent(prompt=prompt))
