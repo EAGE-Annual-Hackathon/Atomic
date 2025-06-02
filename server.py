@@ -136,12 +136,34 @@ def open_and_visualize_2d(filepath: str, shot: int, title: str) -> Image:
 
 
 @mcp.tool()
-def butter_bandpass_filter(filepath: str, lowcut: int, highcut: int, shot: int) -> str:
+def get_shot_from_3d_volume(filepath: str, shot: int) -> str:
+    """Extract a shot from a 3D volume.
+
+    Args:
+        filepath: File to the numpy array containg the 3D volume.
+        shot: Shot to pick form the 3D volume.
+
+    Returns:
+        Path to the new 2D numpy array containing only the specified shot.
+    """
+    data = np.load(filepath)["data"]
+    new_filepath = filepath.replace(".npz", f"_{shot}.npz")
+    data = data[:, shot, :]
+    np.savez(new_filepath, data=data)
+    return new_filepath
+
+
+@mcp.tool()
+def butter_bandpass_filter(
+    filepath: str,
+    lowcut: int,
+    highcut: int,
+) -> str:
     r"""Apply Butterworth bandpass filter
 
     Apply Butterworth bandpass filter over time axis of input data
 
-    In and output are 3D numpy arrays.
+    In and output are 2D numpy arrays.
 
     Args:
         filepath : Path to the npz file containing the data to be filtered.
@@ -152,17 +174,15 @@ def butter_bandpass_filter(filepath: str, lowcut: int, highcut: int, shot: int) 
     Returns:
         The new path of the filtered data.
     """
-    fs = 1 / 4000
+    fs = 1 / (4 / 1000)
     data = np.load(filepath)["data"]
-    new_filepath = filepath.replace(".npz", f"{shot}_filtered.npz")
-    data = data[:, shot, :]
+    new_filepath = filepath.replace(".npz", "filtered.npz")
     order = 5
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
     b, a = butter(order, [low, high], btype="bandpass", analog=False)
     y = filtfilt(b, a, data, axis=-1)
-    y = np.expand_dims(y, axis=1)
     np.savez(new_filepath, data=y)
     return new_filepath
 
