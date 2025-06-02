@@ -20,4 +20,5 @@ dependencies = [
     "pylops>=2.1.0",
     "scipy>=1.13.0",
     "numpy>=1.22.3",
+    "scikit-image>=0.25.2"
 ]
