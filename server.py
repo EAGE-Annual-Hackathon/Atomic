@@ -1,13 +1,10 @@
 from pathlib import Path
 
 import matplotlib.pyplot as plt
-
-# from pydantic_ai import Agent
 import numpy as np
 import pylops
 import segyio
 from fastmcp import FastMCP, Image
-from pylops.basicoperators import *
 from pylops.basicoperators import Restriction
 from pylops.optimization.sparsity import fista
 from pylops.signalprocessing import FFT2D
@@ -105,6 +102,8 @@ def read_trace_header(
 def open_and_visualize_2d(filepath: str, shot: int, title: str) -> Image:
     """Open and Visualize a 2D seismic section.
 
+    The input numpy file can either be 2D or 3D.
+
     Args:
         filepath (str): Path to the npz file of the data.
         shot (int): The index of the shot to visualize.
@@ -142,24 +141,16 @@ def butter_bandpass_filter(filepath: str, lowcut: int, highcut: int, shot: int) 
 
     Apply Butterworth bandpass filter over time axis of input data
 
-    Parameters
-    ----------
-    filepath : str
-        Path to the npz file containing the data to be filtered
-    data : np.ndarray
-        1D or 2D array where filtering is applied along the last axis
-    lowcut : int
-        Lower cut-off frequency
-    highcut : int
-        Upper cut-off frequency
-    output_name : str
-        Short name of the output file to save the filtered data
+    In and output are 3D numpy arrays.
 
+    Args:
+        filepath : Path to the npz file containing the data to be filtered.
+        data : 1D or 2D array where filtering is applied along the last axis
+        lowcut : Lower cut-off frequency
+        highcut : Upper cut-off frequency
 
-    Returns
-    -------
-    y : np.ndarray
-        Filtered data
+    Returns:
+        The new path of the filtered data.
     """
     fs = 1 / 4000
     data = np.load(filepath)["data"]
@@ -179,6 +170,8 @@ def butter_bandpass_filter(filepath: str, lowcut: int, highcut: int, shot: int) 
 @mcp.tool()
 def interpolate_gap(filepath: str) -> str:
     """Interpolate gaps in the seismic data using sparsity promoting inversion.
+
+    In and output are 2D numpy arrays.
 
     Args:
         filepath: This is the path to the .npz file with the data.
@@ -212,9 +205,14 @@ def interpolate_gap(filepath: str) -> str:
 @mcp.tool()
 def denoise(filepath: str) -> str:
     """Denoise seismic data using TV Regularization.
+
+    In and output are 2D numpy arrays.
+
     Args:
-    filepath (str): Path to the npz file of the data.
-    output name (str): Short name of the output file to save the denoised data.
+        filepath (str): Path to the npz file of the data.
+
+    Returns:
+        The new path of the denoised data.
     """
     new_filepath = filepath.replace(".npz", "_denoised.npz")
     data = np.load(filepath)["data"]
