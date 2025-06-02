@@ -4,11 +4,7 @@ This repository contains reproducible materials for the **Automatic Seismic Proc
 
 ## 📌 Project Description
 
-In this project, we aim to automate the quality control of seismic datasets using **Volve Field Data** and **Agentic AI**. The agent is designed to:
-- Analyze the data  
-- Evaluate its quality  
-- Decide on necessary processing steps  
-- Execute the processing
+In this project, we aim to automate the quality control of seismic datasets using Volve Field Data and Agentic AI. The agent is designed to analyze the data, evaluate its quality, decide on the necessary processing steps, and then execute them.
 
 The demonstrated processes include:
 - Interpolating seismic data gaps  
