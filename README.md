@@ -1,17 +1,28 @@
 # Automic
 
-This repository provides reproducible material for Automatic Seismic Processing project for EAGE Hackathon 2025
+This repository contains reproducible materials for the **Automatic Seismic Processing** project developed for the **EAGE Hackathon 2025**.
 
-## Project Description
-In this project we try to automatize the quality control of the seismic dataset using Volve Field Data using Agentic AI. The Agent will try to see the data, evaluate, decide what processing necessary and do the processing. The process showcase here are interpolating seismic gaps, denoising, and frequency filtering. But it can also extended to others processing steps.
+## 📌 Project Description
+
+In this project, we aim to automate the quality control of seismic datasets using **Volve Field Data** and **Agentic AI**. The agent is designed to:
+- Analyze the data  
+- Evaluate its quality  
+- Decide on necessary processing steps  
+- Execute the processing
+
+The demonstrated processes include:
+- Interpolating seismic data gaps  
+- Denoising  
+- Frequency filtering  
+
+The system can also be extended to support additional processing steps. For more information, refer to the provided PowerPoint presentation in the repository.
+
 
 ## Project Structure
 The repository is organized as follows:
 
-* :open_file_folder: **data**: A folder containing the data for test
-* :open_file_folder: **data**: A folder containing the data or instructions on how to obtain it.
-* :open_file_folder: **notebooks**: Jupyter notebooks that document the application of IntraSesimic to the inversion of the synthetic Marmousi data.
-
+* :open_file_folder: **data**: A folder containing the data for test, processing results, and figures
+* :open_file_folder: **dataref**: A folder containing the data or instructions on how to obtain it.
 
 ## Getting Started :space_invader: :robot:
 Please install Microsoft Visual Studio Code Insiders (we need this for the latest MCP features):
